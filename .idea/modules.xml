@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Advanced_Web_Mapping.iml" filepath="$PROJECT_DIR$/.idea/Advanced_Web_Mapping.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Advanced_Web_Mapping_server.iml" filepath="$PROJECT_DIR$/.idea/Advanced_Web_Mapping_server.iml" />
     </modules>
   </component>
 </project>

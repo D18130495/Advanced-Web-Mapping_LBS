@@ -20,7 +20,7 @@ RUN apt-get -y install build-essential python3-cffi libcairo2 libpango-1.0-0 lib
 # Now copy this to the image and install everything in it. Make sure to install uwsgi - it may not be in the source
 # environment.
 COPY ENV.yml /usr/src/app
-RUN conda env create -n Advanced_Web_Mapping --file ENV.yml
+RUN conda env create -n Advanced_Web_Mapping_LBS --file ENV.yml
 
 # Make RUN commands use the new environment
 # See https://pythonspeed.com/articles/activate-conda-dockerfile/ for explanation
