@@ -16,6 +16,7 @@ import socket
 
 import docker_config
 
+
 if os.name == 'nt':
     import platform
 
@@ -35,6 +36,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 with open('secret_key.txt') as f:
     SECRET_KEY = f.read().strip()
 
+CORS_ORIGINS_ALLOW_ALL = True
 CORS_ALLOW_ALL_ORIGINS = True
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -43,8 +45,6 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 # Application definition
-
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -55,7 +55,8 @@ INSTALLED_APPS = [
     "django.contrib.gis",
     "corsheaders",
     "django_restful_api",
-    "rest_framework"
+    "rest_framework",
+    "rest_framework.authtoken"
 ]
 
 MIDDLEWARE = [
@@ -64,13 +65,11 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
+    # "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-
-CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = "Advanced_Web_Mapping_LBS.urls"
 
@@ -113,15 +112,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", },
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator", },
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator", },
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator", }
 ]
 
 REST_FRAMEWORK = {
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+        'rest_framework.permissions.IsAuthenticated'
     ],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'django_restful_api.auth.ExpiringTokenAuthentication'
+    ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
 }

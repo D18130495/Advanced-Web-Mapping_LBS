@@ -1,3 +1,5 @@
+from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.urls import include, path, re_path
 from pwa.views import service_worker, manifest, offline
 from rest_framework import routers
@@ -10,7 +12,10 @@ router.register(r'groups', views.GroupViewSet)
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
-    path('', include(router.urls)),
+    path("admin/", admin.site.urls),
+    path("api/login/", views.login, name="login"),
+    path("api/logout/", views.logout, name="logout"),
+    path('api/', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     re_path(r'^serviceworker\.js$', service_worker, name='serviceworker'),
     re_path(r'^manifest\.json$', manifest, name='manifest'),
