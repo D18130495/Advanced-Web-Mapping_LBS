@@ -36,7 +36,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 with open('secret_key.txt') as f:
     SECRET_KEY = f.read().strip()
 
-CORS_ORIGINS_ALLOW_ALL = True
+# CORS_ORIGINS_ALLOW_ALL = True
 CORS_ALLOW_ALL_ORIGINS = True
 
 # SECURITY WARNING: don't run with debug turned on in production!
