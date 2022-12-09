@@ -1,25 +1,42 @@
+import rest_framework.authtoken.views
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path, re_path
 from pwa.views import service_worker, manifest, offline
 from rest_framework import routers
 from django_restful_api import views
+from django_restful_api import rest_views
+
 
 router = routers.DefaultRouter()
-router.register(r'users', views.UserViewSet)
-router.register(r'groups', views.GroupViewSet)
+router.register(r'users', rest_views.UserViewSet)
+# router.register(r'changePassword', rest_views.ChangePassword.as_view(), basename="changePassword")
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("api/", include(router.urls)),
+    path("api-auth/", include('rest_framework.urls', namespace='rest_framework')),
+    path("api/changePassword/", rest_views.ChangePassword.as_view(), name="changePassword"),
+
+
+
+
+    # path("api-token-auth/", rest_framework.authtoken.views.obtain_auth_token),
+    #
+    #
+    #
+    #
     path("api/login/", views.login, name="login"),
     path("api/logout/", views.logout, name="logout"),
-    path('api/', include(router.urls)),
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    re_path(r'^serviceworker\.js$', service_worker, name='serviceworker'),
-    re_path(r'^manifest\.json$', manifest, name='manifest'),
-    re_path('^offline/$', offline, name='offline'),
+    path("api/signup/", views.signup, name="signup"),
+    path("api/getUserInfoByToken/", views.get_user_info_by_token, name="getUserInfoByToken"),
+    path("api/updateProfile/", views.update_profile, name="updateProfile"),
+    # path("api/changePassword/", views.change_password, name="changePassword"),
+    # re_path(r'^serviceworker\.js$', service_worker, name='serviceworker'),
+    # re_path(r'^manifest\.json$', manifest, name='manifest'),
+    # re_path('^offline/$', offline, name='offline'),
 ]
 
 # """Advanced_Web_Mapping_LBS URL Configuration
