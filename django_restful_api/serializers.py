@@ -23,7 +23,7 @@ class Login(serializers.Serializer):
         validators=[validate_password]
     )
 
-    def validate(self, data):
+    def to_internal_value(self, data):
         return data
 
 
@@ -42,7 +42,7 @@ class RegisterUserSerializer(serializers.Serializer):
     username = serializers.CharField(
         write_only=True,
         required=True,
-        # validators=[UniqueValidator(queryset=User.objects.all())]
+        validators=[UniqueValidator(queryset=User.objects.all())]
     )
 
     password = serializers.CharField(

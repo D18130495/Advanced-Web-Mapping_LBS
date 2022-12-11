@@ -7,8 +7,9 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.contrib.gis.geos import Point
 
-from django_restful_api import serializers
+from django_restful_api import serializers, models
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -22,7 +23,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class Login(generics.CreateAPIView):
     """
-    API endpoint that allows users login
+    API endpoint that allows users login, accept all the request
     """
     serializer_class = serializers.Login
     permission_classes = (AllowAny,)
@@ -32,16 +33,19 @@ class Login(generics.CreateAPIView):
         try:
             my_serializer = serializers.Login(data=request.data)
 
+            # serializer passes the password format check
             if my_serializer.is_valid():
                 user = authenticate(
                     username=my_serializer.validated_data['username'],
                     password=my_serializer.validated_data['password']
                 )
 
+                # username and password not match
                 if not user:
                     return Response({"result": False, "info": "Username or password is incorrect"},
-                                    status=status.HTTP_200_OK)
+                                    status=status.HTTP_400_BAD_REQUEST)
 
+                # user exist, find token or create token
                 try:
                     tokenObj = Token.objects.get(user_id=user.id)
                 except Exception as e:
@@ -53,56 +57,60 @@ class Login(generics.CreateAPIView):
 
                 token = tokenObj.key
 
-                return Response({"result": True, "token": token, "user": user.username, "info": "Successfully logged in"},
-                                status=status.HTTP_200_OK)
+                return Response(
+                    {"result": True, "token": token, "user": user.username, "info": "Successfully logged in"},
+                    status=status.HTTP_200_OK)
 
             return Response({"result": False, "info": "Password format is invalid"},
-                            status=status.HTTP_200_OK)
+                            status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"result": False, "info": "Server error, login failed"},
-                            status=status.HTTP_200_OK)
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class Logout(views.APIView):
     """
-    API endpoint that allows users logout
+    API endpoint that allows users logout, accept all the request
     """
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
     serializer_class = serializers.Logout
 
     def get(self, request, *args, **kwargs):
-        token = ""
+        # get user token
         authInfo = request.META.get('HTTP_AUTHORIZATION')
 
-        if authInfo:
+        # parse user token
+        if authInfo != 'Token null':
             token = authInfo.split(' ')[1]
         else:
-            return Response({"result": False, "info": "Token does not provided"},
-                            status=status.HTTP_200_OK)
+            # token does not exist
+            return Response({"result": False, "info": "Token does not provided, logged out"},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         try:
             user = User.objects.get(username=request.user.username)
 
             if not user:
-                return Response({"result": False, "info": "User does not exist"},
-                                status=status.HTTP_200_OK)
+                # user does not exist
+                return Response({"result": False, "info": "User does not exist, logged out"},
+                                status=status.HTTP_400_BAD_REQUEST)
 
             try:
-                token = Token.objects.get(key=token)
-                token.delete()
-
-                return Response({"result": True, "info": "Successfully logged out"})
+                Token.objects.get(key=token)
+                # successfully logged in
+                return Response({"result": True, "info": "Successfully logged out"}, status=status.HTTP_200_OK)
             except Exception as e:
-                return Response({"result": False, "info": "Token does not exist in the server"},
-                                status=status.HTTP_200_OK)
+                # token does not exist in the server
+                return Response({"result": False, "info": "Token does not exist in the server, logged out"},
+                                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({"result": False, "info": "Server error, log out failed"},
-                            status=status.HTTP_200_OK)
+            return Response({"result": False, "info": "Server error, logged out"},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class RegisterUser(views.APIView):
     """
-    API endpoint that allow new user register
+    API endpoint that allow new user register, accept all the request
     """
     serializer_class = serializers.RegisterUserSerializer
     permission_classes = (AllowAny,)
@@ -112,6 +120,7 @@ class RegisterUser(views.APIView):
         try:
             my_serializer = serializers.RegisterUserSerializer(data=request.data)
 
+            # serializer passes the password format check
             if my_serializer.is_valid():
                 try:
                     User.objects.create_user(
@@ -119,22 +128,26 @@ class RegisterUser(views.APIView):
                         password=my_serializer.validated_data['password']
                     )
 
-                    return Response({"result": True, "info": "Successfully signed up, automatic login in three seconds"},
-                                    status=status.HTTP_200_OK)
+                    # successfully logged in
+                    return Response(
+                        {"result": True, "info": "Successfully signed up, automatic login in three seconds"},
+                        status=status.HTTP_200_OK)
                 except Exception as e:
+                    # User.objects.create_user failed
                     return Response({"result": False, "info": "Server error, register failed"},
-                                    status=status.HTTP_200_OK)
+                                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+            # username already exist
             return Response({"result": False, "info": "Username already exists in the system, please input again"},
-                            status=status.HTTP_200_OK)
+                            status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"result": False, "info": "Server error, register failed"},
-                            status=status.HTTP_200_OK)
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class GetCurrentUserInfo(views.APIView):
     """
-    API endpoint that to get current login user information
+    API endpoint that to get current login user information, only accept authenticated
     """
     permission_classes = (IsAuthenticated,)
 
@@ -147,12 +160,12 @@ class GetCurrentUserInfo(views.APIView):
                             status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"result": False, "info": "Server error, get current user information failed"},
-                            status=status.HTTP_200_OK)
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UpdateProfile(views.APIView):
     """
-    API endpoint that update user profile
+    API endpoint that update user profile, only accept authenticated
     """
     permission_classes = (IsAuthenticated,)
     serializer_class = serializers.UpdateProfileSerializer
@@ -161,24 +174,28 @@ class UpdateProfile(views.APIView):
         try:
             my_serializer = serializers.UpdateProfileSerializer(data=request.data)
 
+            # serializer passes the format check
             if my_serializer.is_valid():
-                User.objects.filter(username=request.user.username)\
+                # update user profile
+                User.objects.filter(username=request.user.username) \
                     .update(first_name=my_serializer.validated_data['firstName'],
                             last_name=my_serializer.validated_data['lastName'],
                             email=my_serializer.validated_data['email'])
 
+                # successfully update user profile
                 return Response({"result": True, "firstName": my_serializer.validated_data['firstName'],
                                  "lastName": my_serializer.validated_data['lastName'],
                                  "email": my_serializer.validated_data['email'],
-                                 "info": "Successfully updated user information"})
+                                 "info": "Successfully updated user information"},
+                                status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"result": False, "info": "Server error, update profile failed"},
-                            status=status.HTTP_200_OK)
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ChangePassword(views.APIView):
     """
-    API endpoint that change password
+    API endpoint that change password, only accept authenticated
     """
     permission_classes = (IsAuthenticated,)
     serializer_class = serializers.ChangePasswordSerializer
@@ -187,6 +204,7 @@ class ChangePassword(views.APIView):
         try:
             my_serializer = serializers.ChangePasswordSerializer(data=request.data)
 
+            # serializer passes the format check
             if my_serializer.is_valid():
                 user = authenticate(
                     username=request.user.username,
@@ -194,17 +212,52 @@ class ChangePassword(views.APIView):
                 )
 
                 if not user:
+                    # old password not correct
                     return Response({"result": False, "info": "Your old password is not correct, please input again"},
-                                    status=status.HTTP_200_OK)
+                                    status=status.HTTP_400_BAD_REQUEST)
 
+                # set new password
                 request.user.set_password(my_serializer.validated_data['newPassword'])
                 request.user.save()
 
+                # successfully changed password
                 return Response({"result": True, "info": "Successfully changed user password"},
                                 status=status.HTTP_200_OK)
             else:
+                # new password format is invalid
                 return Response({"result": False, "info": "New password format is invalid"},
                                 status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"result": False, "info": "Server error, change password failed"},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class UpdateLocation(views.APIView):
+    """
+    API endpoint that update user location when click on the map, only accept authenticated
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            # find user profile
+            user_profile = models.Profile.objects.get(user=request.user)
+
+            if not user_profile:
+                return Response({"result": False, "info": "Get user failed"},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            # parse location and save to profile
+            location = request.data['location'].split(",")
+            location = [float(part) for part in location]
+            location = Point(location, srid=4326)
+
+            user_profile.last_location = location
+            user_profile.save()
+
+            # successfully updated current location
+            return Response({"result": True, "info": "Successfully updated location"},
                             status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"result": False, "info": "Server error, update location failed"},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)

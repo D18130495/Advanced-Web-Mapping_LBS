@@ -19,4 +19,5 @@ urlpatterns = [
     path("api/changePassword/", rest_views.ChangePassword.as_view(), name="changePassword"),
     path("api/getCurrentUserInfo/", rest_views.GetCurrentUserInfo.as_view(), name="getCurrentUserInfo"),
     path("api/updateProfile/", rest_views.UpdateProfile.as_view(), name="updateProfile"),
+    path("api/updateLocation/", rest_views.UpdateLocation.as_view(), name="updateLocation"),
 ]
