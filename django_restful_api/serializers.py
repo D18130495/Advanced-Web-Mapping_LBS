@@ -33,7 +33,6 @@ class Logout(serializers.Serializer):
     """
     user logout
     """
-
     class Meta:
         model = User
 

@@ -6,6 +6,10 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+"""
+first time write view, with out django rest framework
+"""
+
 
 @api_view(['POST'])
 @permission_classes((AllowAny,))

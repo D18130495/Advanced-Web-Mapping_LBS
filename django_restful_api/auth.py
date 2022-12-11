@@ -4,7 +4,7 @@ from django.utils import timezone
 from datetime import timedelta
 
 """
-Rewrite TokenAuthentication, use to set expired time
+Rewrite TokenAuthentication, use to set token expired time(7 days)
 """
 
 
