@@ -3,7 +3,7 @@ FROM continuumio/miniconda3
 MAINTAINER Yushun Zeng
 
 ENV PYTHONUNBUFFERED 1
-ENV DJANGO_SETTINGS_MODULE=Advanced_Web_Mapping.settings
+ENV DJANGO_SETTINGS_MODULE=Advanced_Web_Mapping_LBS.settings
 
 # Ensure that everything is up-to-date
 RUN apt-get -y update && apt-get -y upgrade
@@ -24,13 +24,14 @@ RUN conda env create -n Advanced_Web_Mapping_LBS --file ENV.yml
 
 # Make RUN commands use the new environment
 # See https://pythonspeed.com/articles/activate-conda-dockerfile/ for explanation
-RUN echo "conda activate Advanced_Web_Mapping" >> ~/.bashrc
+RUN echo "conda activate Advanced_Web_Mapping_LBS" >> ~/.bashrc
 SHELL ["/bin/bash", "--login", "-c"]
 
 # Set up conda to match our test environment
 RUN conda config --add channels conda-forge && conda config --set channel_priority strict
 RUN cat ~/.condarc
 RUN conda install uwsgi
+RUN conda install django
 
 # Copy everything in your Django project to the image.
 COPY . /usr/src/app
