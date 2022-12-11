@@ -3,6 +3,10 @@ from rest_framework import exceptions
 from django.utils import timezone
 from datetime import timedelta
 
+"""
+Rewrite TokenAuthentication, use to set expired time
+"""
+
 
 class ExpiringTokenAuthentication(TokenAuthentication):
     def authenticate_credentials(self, key):

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import include, path
 from rest_framework import routers
-from django_restful_api import rest_views
+from django_restful_api import rest_views, overpass_view
 
 
 router = routers.DefaultRouter()
@@ -20,4 +20,5 @@ urlpatterns = [
     path("api/getCurrentUserInfo/", rest_views.GetCurrentUserInfo.as_view(), name="getCurrentUserInfo"),
     path("api/updateProfile/", rest_views.UpdateProfile.as_view(), name="updateProfile"),
     path("api/updateLocation/", rest_views.UpdateLocation.as_view(), name="updateLocation"),
+    path("api/queryOverpass/", overpass_view.QueryOverpass.as_view(), name="queryOverpass")
 ]
